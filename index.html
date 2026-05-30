@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#060a10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Daily Quest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Daily Quest ⚡</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060a10;--bg2:#0a1018;--bg3:#0f1822;--surf:#111d2e;--surf2:#162235;--border:#1e3550;
+  --c1:#00f0ff;--c2:#ff0080;--c3:#a855f7;--c4:#22d3ee;--gold:#fbbf24;--green:#10f090;--red:#ff3355;
+  --text:#dde8f5;--text2:#7a9bbf;--text3:#3a5a80;
+  --fn:'Exo 2',sans-serif;--fm:'Share Tech Mono',monospace;
+  --glow1:0 0 20px rgba(0,240,255,.25);--glow2:0 0 20px rgba(255,0,128,.25);--glow3:0 0 20px rgba(168,85,247,.25);
+  --xp-bar:linear-gradient(90deg,#00f0ff,#a855f7);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--fn);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .5s}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,240,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,240,255,.06),transparent);pointer-events:none;z-index:0}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--c3);border-radius:3px}
+#app{position:relative;z-index:1;padding-bottom:74px}
+
+/* NAV */
+nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(6,10,16,.97);backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+.nb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;border:none;background:none;cursor:pointer;color:var(--text3);font-family:var(--fn);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:all .2s;border-radius:8px;min-width:48px}
+.nb .ni{font-size:18px;transition:transform .2s}
+.nb:hover{color:var(--c1)}
+.nb.on{color:var(--c1);text-shadow:0 0 8px var(--c1)}
+.nb.on .ni{transform:scale(1.2)}
+
+/* PAGES */
+.pg{display:none;animation:pgIn .3s ease;min-height:calc(100vh - 74px)}
+.pg.on{display:block}
+@keyframes pgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.wrap{padding:14px;max-width:620px;margin:0 auto}
+
+/* TYPOGRAPHY */
+.ttl{font-family:var(--fm);font-size:11px;letter-spacing:.18em;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+.pg-ttl{font-family:var(--fm);font-size:18px;background:linear-gradient(135deg,var(--c1),var(--c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.06em;padding:16px 14px 4px;max-width:620px;margin:0 auto}
+.pg-sub{font-size:12px;color:var(--text3);padding:0 14px 10px;max-width:620px;margin:0 auto}
+
+/* CARDS */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;overflow:hidden;margin-bottom:12px}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--c1),transparent);opacity:.35}
+.card.c2::before{background:linear-gradient(90deg,transparent,var(--c2),transparent)}
+.card.c3::before{background:linear-gradient(90deg,transparent,var(--c3),transparent)}
+.card.gold::before{background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+
+/* XP BAR */
+.xpbg{height:8px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);overflow:hidden}
+.xpfill{height:100%;border-radius:4px;background:var(--xp-bar);transition:width .7s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden}
+.xpfill::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:shim 2.2s infinite}
+@keyframes shim{to{left:100%}}
+.xpfill.fire{background:linear-gradient(90deg,#ff6b00,#ff0055)}
+.xpfill.nature{background:linear-gradient(90deg,#00c853,#76ff03)}
+.xpfill.void{background:linear-gradient(90deg,#9400ff,#00b0ff)}
+
+/* LEVEL BADGE */
+.lvlbadge{font-family:var(--fm);font-weight:700;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--c3),var(--c1));border-radius:50%;color:#fff;flex-shrink:0;text-shadow:0 0 10px rgba(0,0,0,.5)}
+
+/* DIFFICULTY BADGES */
+.diff{display:inline-block;font-family:var(--fm);font-size:9px;padding:2px 6px;border-radius:4px;letter-spacing:.06em;font-weight:700;flex-shrink:0}
+.diff-easy{background:rgba(16,240,144,.12);color:var(--green);border:1px solid rgba(16,240,144,.25)}
+.diff-medium{background:rgba(0,240,255,.1);color:var(--c1);border:1px solid rgba(0,240,255,.25)}
+.diff-hard{background:rgba(255,0,128,.1);color:#ff6090;border:1px solid rgba(255,0,128,.25)}
+.diff-epic{background:rgba(168,85,247,.18);color:#d8a4ff;border:1px solid rgba(168,85,247,.45);animation:epicPulse 2s infinite}
+@keyframes epicPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 8px rgba(168,85,247,.5)}}
+
+/* CHALLENGE CARDS */
+.chl{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;background:var(--surf2);border:1px solid var(--border);cursor:pointer;transition:all .2s;position:relative;overflow:hidden;user-select:none;margin-bottom:8px}
+.chl:not(.done):hover{border-color:var(--c1);box-shadow:var(--glow1);transform:translateX(4px)}
+.chl.done{opacity:.48;border-color:var(--green);cursor:default}
+.chl.done::after{content:'✓';position:absolute;right:14px;font-size:18px;color:var(--green);font-weight:900}
+.chl.gaming{border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.07)}
+.chl.gaming:not(.done):hover{border-color:var(--c3);box-shadow:var(--glow3)}
+.chl.sport{border-color:rgba(16,240,144,.3);background:rgba(16,240,144,.05)}
+.chl.sport:not(.done):hover{border-color:var(--green);box-shadow:0 0 16px rgba(16,240,144,.2)}
+.chl-div{display:flex;align-items:center;gap:10px;margin:6px 0;color:var(--c3);font-family:var(--fm);font-size:10px;letter-spacing:.12em}
+.chl-div::before,.chl-div::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--c3),transparent)}
+.chl-div.sport-div{color:var(--green)}
+.chl-div.sport-div::before,.chl-div.sport-div::after{background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.ci{font-size:24px;flex-shrink:0}
+.cn{font-size:14px;font-weight:600;margin-bottom:3px}
+.cr{font-size:11px;color:var(--text3)}
+
+/* SHUFFLE ROW */
+.shuffle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+.shuffle-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surf2);color:var(--text2);font-family:var(--fm);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.06em}
+.shuffle-btn:hover{border-color:var(--c1);color:var(--c1);box-shadow:var(--glow1)}
+.shuffle-btn.no-coins{opacity:.4;cursor:not-allowed}
+.shuffle-cost{font-size:10px;color:var(--gold);margin-left:2px}
+
+/* MULTIPLIER BADGE */
+.mult-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-family:var(--fm);font-size:13px;font-weight:700;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);color:var(--gold)}
+.mult-badge.x1{background:rgba(122,155,191,.08);border-color:var(--border);color:var(--text2)}
+
+/* LOGIN BONUS */
+.lbc-wrap{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+.lbc{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);min-width:56px;flex:1;transition:all .2s}
+.lbc.done{border-color:var(--green);background:rgba(16,240,144,.06)}
+.lbc.today{border-color:var(--gold);background:rgba(251,191,36,.1);box-shadow:0 0 12px rgba(251,191,36,.2)}
+.lbc.future{opacity:.4}
+.lbc-day{font-family:var(--fm);font-size:9px;color:var(--text3);letter-spacing:.06em}
+.lbc-ico{font-size:16px}
+.lbc-val{font-size:9px;color:var(--text2);text-align:center}
+
+/* POWER-UPS */
+.pu-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.pu-card{background:var(--surf2);border:1px solid var(--border);border-radius:12px;padding:14px 12px;cursor:pointer;transition:all .2s;position:relative}
+.pu-card:hover{border-color:var(--c1);box-shadow:var(--glow1);transform:translateY(-2px)}
+.pu-card.active{border-color:var(--c3);background:rgba(168,85,247,.08)}
+.pu-card.no-coins{opacity:.5}
+.pu-ico{font-size:24px;margin-bottom:6px}
+.pu-name{font-size:13px;font-weight:700}
+.pu-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.pu-price{font-family:var(--fm);font-size:12px;color:var(--gold);margin-top:6px}
+.pu-timer{font-family:var(--fm);font-size:10px;color:var(--c1);margin-top:4px}
+.pu-badge{position:absolute;top:8px;right:8px;font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;font-family:var(--fm);letter-spacing:.05em}
+.pb-active{background:rgba(0,240,255,.12);color:var(--c1);border:1px solid rgba(0,240,255,.3)}
+.pb-buy{background:rgba(251,191,36,.1);color:var(--gold);border:1px solid rgba(251,191,36,.25)}
+
+/* SKILL TREE */
+.skill-card{background:var(--surf);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden}
+.sk-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sk-ico{font-size:30px}
+.sk-title{font-size:16px;font-weight:700}
+.sk-sub{font-size:12px;color:var(--text3)}
+.sk-levels{display:flex;gap:6px;margin-bottom:10px}
+.sk-dot{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;transition:all .2s;cursor:pointer;flex-direction:column;gap:1px}
+.sk-dot.done{background:rgba(0,240,255,.15);border-color:var(--c1);color:var(--c1)}
+.sk-dot.next{border-color:var(--c3);color:var(--c3);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 10px rgba(168,85,247,.4)}}
+.sk-dot.locked{color:var(--text3);cursor:not-allowed}
+.sk-effect{font-size:12px;color:var(--text2);margin-top:8px;padding:8px;background:var(--bg2);border-radius:8px;border:1px solid var(--border)}
+
+/* ACHIEVEMENTS */
+.rank-hdr{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.r-asche{background:rgba(80,80,80,.15);color:#888;border:1px solid #3a3a3a}
+.r-bronze{background:rgba(205,127,50,.12);color:#cd7f32;border:1px solid rgba(205,127,50,.3)}
+.r-silber{background:rgba(192,192,192,.1);color:#c0c0c0;border:1px solid rgba(192,192,192,.25)}
+.r-gold{background:rgba(251,191,36,.1);color:var(--gold);border:1px solid rgba(251,191,36,.3)}
+.r-schillernd{background:rgba(168,85,247,.1);color:#c084fc;border:1px solid rgba(168,85,247,.35)}
+.r-platin{background:linear-gradient(135deg,rgba(0,240,255,.08),rgba(255,0,128,.08));color:#fff;border:1px solid rgba(0,240,255,.3)}
+.ach-c{background:var(--surf2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:7px}
+.ach-c.done{border-color:var(--green)}
+.ach-top{display:flex;align-items:center;gap:10px}
+.ach-ic{font-size:20px}
+.ach-n{font-size:14px;font-weight:600}
+.ach-d{font-size:11px;color:var(--text3);margin-top:1px}
+.prog-bg{height:5px;border-radius:3px;background:var(--bg2);margin-top:8px;overflow:hidden}
+.prog-f{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--c3),var(--c1));transition:width .5s ease}
+.prog-t{font-size:10px;color:var(--text3);text-align:right;margin-top:3px;font-family:var(--fm)}
+
+/* SHOP */
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sh-item{background:var(--surf2);border:1px solid var(--border);border-radius:12px;padding:14px 12px;cursor:pointer;transition:all .2s;position:relative}
+.sh-item:hover:not(.owned){border-color:var(--c1);box-shadow:var(--glow1);transform:translateY(-2px)}
+.sh-item.owned{border-color:var(--green);opacity:.7;cursor:default}
+.sh-ico{font-size:28px;margin-bottom:6px}
+.sh-name{font-size:12px;font-weight:600}
+.sh-price{font-family:var(--fm);font-size:12px;color:var(--gold);margin-top:5px}
+.sh-badge{position:absolute;top:7px;right:7px;font-size:9px;padding:2px 6px;border-radius:20px;font-family:var(--fm);font-weight:700}
+.sb-owned{background:rgba(16,240,144,.12);color:var(--green);border:1px solid rgba(16,240,144,.25)}
+.sb-buy{background:rgba(0,240,255,.1);color:var(--c1);border:1px solid rgba(0,240,255,.2)}
+.sb-lock{background:rgba(255,51,85,.1);color:var(--red);border:1px solid rgba(255,51,85,.2)}
+
+/* PROFILE */
+.pf-banner{height:110px;border-radius:14px 14px 0 0;margin:-18px -18px 0;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pf-av{width:72px;height:72px;border-radius:50%;border:3px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;cursor:pointer;position:relative;z-index:2;overflow:hidden;flex-shrink:0;transition:transform .2s}
+.pf-av:hover{transform:scale(1.05)}
+.pf-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.pf-av-edit{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);font-size:10px;font-family:var(--fm);color:var(--c1);text-align:center;padding:2px 0;opacity:0;transition:opacity .2s}
+.pf-av:hover .pf-av-edit{opacity:1}
+.pf-name-row{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+#pf-name{font-family:var(--fm);font-size:16px;font-weight:700;background:none;border:none;color:var(--text);outline:none;width:100%;border-bottom:1px dashed transparent;transition:border-color .2s}
+#pf-name:focus{border-color:var(--c1)}
+.stat-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.stat-b{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center}
+.stat-v{font-family:var(--fm);font-size:20px;color:var(--c1)}
+.stat-l{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.prestige-btn{width:100%;padding:12px;border-radius:10px;border:1px solid;font-family:var(--fm);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.08em;transition:all .2s;margin-top:8px}
+.prestige-btn.ready{background:rgba(251,191,36,.1);border-color:var(--gold);color:var(--gold)}
+.prestige-btn.ready:hover{background:rgba(251,191,36,.2);box-shadow:0 0 15px rgba(251,191,36,.3)}
+.prestige-btn.disabled{background:var(--bg2);border-color:var(--border);color:var(--text3);cursor:not-allowed}
+.pf-active-pu{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pau{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.25);font-size:11px;color:var(--c1);font-family:var(--fm)}
+.cosm-g{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.cosm-s{background:var(--bg2);border:1px dashed var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .2s;text-align:center}
+.cosm-s:hover{border-color:var(--c3)}
+.cosm-s.eq{border-color:var(--c1);background:rgba(0,240,255,.05)}
+.cs-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.cs-v{font-size:12px;font-weight:600;margin-top:3px;color:var(--text2)}
+
+/* AVATAR GRID */
+.avatar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px;margin-bottom:12px;max-height:240px;overflow-y:auto}
+.av-opt{width:52px;height:52px;border-radius:12px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:all .2s}
+.av-opt:hover{border-color:var(--c3);transform:scale(1.05)}
+.av-opt.sel{border-color:var(--c1);background:rgba(0,240,255,.1);box-shadow:var(--glow1)}
+
+/* TOAST */
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--surf);border:1px solid var(--c1);border-radius:12px;padding:10px 20px;font-family:var(--fm);font-size:12px;color:var(--c1);box-shadow:var(--glow1);z-index:999;opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* MODALS */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-ov.on{opacity:1;pointer-events:all}
+.modal-b{background:var(--surf);border:1px solid var(--c1);border-radius:20px;padding:28px 22px;text-align:center;max-width:280px;width:90%;box-shadow:0 0 50px rgba(0,240,255,.3);transform:scale(.8);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.modal-ov.on .modal-b{transform:scale(1)}
+.modal-ttl{font-family:var(--fm);font-size:22px;background:linear-gradient(135deg,var(--c1),var(--c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.06em}
+.modal-lvl{font-family:var(--fm);font-size:64px;font-weight:700;color:var(--gold);line-height:1}
+.modal-btn{margin-top:16px;padding:9px 28px;background:linear-gradient(135deg,var(--c3),var(--c1));border:none;border-radius:8px;color:#fff;font-family:var(--fm);font-size:12px;letter-spacing:.1em;cursor:pointer;transition:opacity .2s}
+.modal-btn:hover{opacity:.8}
+.pres-modal-b{background:var(--surf);border:1px solid var(--gold);border-radius:20px;padding:28px 22px;text-align:center;max-width:300px;width:92%;box-shadow:0 0 50px rgba(251,191,36,.25);transform:scale(.8);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.modal-ov.on .pres-modal-b{transform:scale(1)}
+
+/* COSM / AVATAR SHEET */
+.cs-ov{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);z-index:400;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.cs-ov.on{opacity:1;pointer-events:all}
+.cs-sheet{background:var(--surf);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:620px;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);max-height:80vh;overflow-y:auto}
+.cs-ov.on .cs-sheet{transform:translateY(0)}
+.cs-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.cs-opt{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s}
+.cs-opt:hover{border-color:var(--c3)}
+.cs-opt.sel{border-color:var(--c1);background:rgba(0,240,255,.07)}
+.cs-opt.lck{opacity:.35;cursor:not-allowed}
+.cs-opt-ico{font-size:22px;margin-bottom:5px}
+.cs-opt-nm{font-size:11px;font-weight:600}
+.cs-cls-btn{width:100%;padding:11px;background:var(--surf2);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-family:var(--fn);font-size:13px;font-weight:600;cursor:pointer;margin-top:12px}
+.cs-cls-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* CONFETTI */
+.conf-c{position:fixed;inset:0;pointer-events:none;z-index:600;overflow:hidden}
+.cp{position:absolute;border-radius:2px;animation:cf 1.6s ease-out forwards}
+@keyframes cf{0%{opacity:1;transform:translateY(-20px) rotate(0deg) scale(1)}85%{opacity:1}100%{opacity:0;transform:translateY(100vh) rotate(820deg) scale(.3)}}
+
+/* RESPONSIVE */
+@media(max-width:420px){.pu-wrap,.shop-grid,.cosm-g{grid-template-columns:1fr}.stat-g{grid-template-columns:1fr 1fr}.lbc{min-width:44px;padding:8px 4px}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HOME -->
+<div id="pg-home" class="pg on">
+  <div class="wrap">
+    <div style="text-align:center;padding:6px 0 14px">
+      <div id="greet" style="font-family:var(--fm);font-size:26px;font-weight:700;background:linear-gradient(135deg,#fff,var(--c1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.25;margin-bottom:4px">Willkommen zurück!</div>
+      <div id="greet-sub" style="font-size:14px;color:var(--text3)"></div>
+    </div>
+
+    <!-- Level Card -->
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="lvlbadge" id="h-lvl" style="width:54px;height:54px;font-size:19px">1</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div style="font-family:var(--fm);font-size:11px;color:var(--text3);letter-spacing:.12em">LEVEL</div>
+            <div style="font-size:11px;color:var(--text3)" id="h-xp-t">0 / 100 XP</div>
+          </div>
+          <div style="margin-top:6px"><div class="xpbg"><div class="xpfill" id="h-xpb" style="width:0%"></div></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px" id="h-next">Nächstes Level: 100 XP</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <div class="mult-badge x1" id="h-mult">⚡ 1.0x XP</div>
+        <div id="h-prestige-badge" style="display:none;font-family:var(--fm);font-size:11px;padding:5px 10px;border-radius:20px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:var(--gold)"></div>
+        <div style="flex:1"></div>
+        <div style="font-family:var(--fm);font-size:13px;color:var(--gold)">🪙 <span id="h-coins">0</span></div>
+      </div>
+    </div>
+
+    <!-- Login Bonus -->
+    <div class="ttl">🎁 Login-Bonus</div>
+    <div class="card c2" style="padding:14px">
+      <div class="lbc-wrap" id="lb-wrap"></div>
+      <div id="lb-claimed" style="display:none;font-family:var(--fm);font-size:11px;color:var(--green);margin-top:8px;text-align:center">✓ Heute bereits abgeholt!</div>
+      <div id="lb-claim-btn-wrap" style="display:none;margin-top:10px">
+        <button onclick="claimLoginBonus()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--gold);background:rgba(251,191,36,.1);color:var(--gold);font-family:var(--fm);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.08em">BONUS ABHOLEN 🎁</button>
+      </div>
+    </div>
+
+    <!-- Active Power-Ups -->
+    <div id="h-pu-status" style="display:none">
+      <div class="ttl">⚡ Aktive Power-Ups</div>
+      <div id="h-pu-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+    </div>
+
+    <!-- Challenges -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="ttl" style="margin-bottom:0">📋 Heutige Quests</div>
+      <div id="quest-count" style="font-family:var(--fm);font-size:11px;color:var(--text3)"></div>
+    </div>
+    <div class="shuffle-row">
+      <button class="shuffle-btn" id="shuffle-btn" onclick="shuffleQuests()">🔀 Shuffeln <span class="shuffle-cost" id="shuffle-cost"></span></button>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--fm)" id="shuffle-count"></div>
+    </div>
+    <div id="chl-list"></div>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS -->
+<div id="pg-achievements" class="pg">
+  <div class="pg-ttl">Achievements</div>
+  <div class="pg-sub" id="ach-sub">0 / 0 freigeschaltet</div>
+  <div class="wrap" id="ach-content"></div>
+</div>
+
+<!-- SKILL TREE -->
+<div id="pg-skills" class="pg">
+  <div class="pg-ttl">Skill-Tree</div>
+  <div class="pg-sub">Investiere XP in permanente Verbesserungen</div>
+  <div class="wrap" id="skill-content"></div>
+</div>
+
+<!-- SHOP -->
+<div id="pg-shop" class="pg">
+  <div class="pg-ttl">Shop</div>
+  <div class="wrap">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surf);border:1px solid var(--border);border-radius:12px;font-family:var(--fm);font-size:14px;font-weight:700;color:var(--gold);margin-bottom:14px">
+      🪙 <span id="sh-coins">0</span><span style="color:var(--text3);font-size:11px;margin-left:4px">Coins</span>
+    </div>
+    <div class="ttl">⚡ Power-Ups</div>
+    <div class="pu-wrap" id="pu-shop"></div>
+    <div id="shop-cosm"></div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="pg-profile" class="pg">
+  <div class="wrap">
+    <div class="card" id="pf-card">
+      <div class="pf-banner" id="pf-banner">
+        <div class="pf-av" id="pf-av" onclick="openAvatarSheet()">🧙<div class="pf-av-edit">✏️ ÄNDERN</div></div>
+      </div>
+      <div class="pf-name-row">
+        <input type="text" id="pf-name" value="Abenteurer" maxlength="20">
+        <div style="font-family:var(--fm);font-size:12px;color:var(--text3)">🪙 <span id="pf-coins">0</span></div>
+      </div>
+      <div id="pf-prestige-row" style="margin-top:6px;display:none">
+        <span id="pf-prestige-badge" style="font-family:var(--fm);font-size:12px;color:var(--gold)"></span>
+      </div>
+      <div style="margin-top:14px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <div style="font-family:var(--fm);font-size:11px;color:var(--text3)">LEVEL <span style="color:var(--c1)" id="pf-lvl">1</span></div>
+          <div style="font-size:11px;color:var(--text3)" id="pf-xp-t">0 / 100 XP</div>
+        </div>
+        <div class="xpbg"><div class="xpfill" id="pf-xpb" style="width:0%"></div></div>
+      </div>
+      <div class="stat-g">
+        <div class="stat-b"><div class="stat-v" id="st-total">0</div><div class="stat-l">Quests</div></div>
+        <div class="stat-b"><div class="stat-v" id="st-streak">0</div><div class="stat-l">Streak 🔥</div></div>
+        <div class="stat-b"><div class="stat-v" id="st-best">0</div><div class="stat-l">Best</div></div>
+      </div>
+      <div id="pf-pu-wrap" style="margin-top:12px;display:none">
+        <div class="ttl">Aktive Power-Ups</div>
+        <div class="pf-active-pu" id="pf-pu-list"></div>
+      </div>
+      <button id="prestige-btn" class="prestige-btn disabled" onclick="tryPrestige()">⚠️ PRESTIGE (Level 50+)</button>
+    </div>
+    <div class="ttl" style="margin-top:4px">🎨 Kosmetik</div>
+    <div class="cosm-g" id="cosm-g"></div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<nav>
+  <button class="nb on" onclick="navigate('home')" id="nb-home"><span class="ni">🏠</span>Home</button>
+  <button class="nb" onclick="navigate('achievements')" id="nb-achievements"><span class="ni">🏆</span>Erfolge</button>
+  <button class="nb" onclick="navigate('skills')" id="nb-skills"><span class="ni">🌳</span>Skills</button>
+  <button class="nb" onclick="navigate('shop')" id="nb-shop"><span class="ni">🛒</span>Shop</button>
+  <button class="nb" onclick="navigate('profile')" id="nb-profile"><span class="ni">👤</span>Profil</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- Level Up Modal -->
+<div class="modal-ov" id="lvlup-ov">
+  <div class="modal-b">
+    <div class="modal-ttl">⚡ LEVEL UP ⚡</div>
+    <div class="modal-lvl" id="m-lvl">2</div>
+    <div style="color:var(--text2);font-size:14px;margin-top:6px">Level <span id="m-lvl2">2</span> erreicht!</div>
+    <button class="modal-btn" onclick="closeModal('lvlup-ov')">WEITER</button>
+  </div>
+</div>
+
+<!-- Prestige Modal -->
+<div class="modal-ov" id="prestige-ov">
+  <div class="pres-modal-b">
+    <div style="font-size:32px;margin-bottom:8px">⭐</div>
+    <div style="font-family:var(--fm);font-size:20px;color:var(--gold);letter-spacing:.06em">PRESTIGE</div>
+    <div style="font-size:13px;color:var(--text2);margin:12px 0">Level wird auf 1 zurückgesetzt.<br>Du behältst alle Skills, Items & Stats.<br><br><strong style="color:var(--gold)">+5% permanenter XP-Bonus!</strong></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="closeModal('prestige-ov')" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-family:var(--fm);font-size:12px;cursor:pointer">ABBRECHEN</button>
+      <button onclick="doPrestige()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--gold);background:rgba(251,191,36,.1);color:var(--gold);font-family:var(--fm);font-size:12px;font-weight:700;cursor:pointer">BESTÄTIGEN</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cosmetic Sheet -->
+<div class="cs-ov" id="cs-ov" onclick="closeCsOv(event)">
+  <div class="cs-sheet">
+    <div style="font-family:var(--fm);font-size:12px;color:var(--c1);letter-spacing:.12em;margin-bottom:12px" id="cs-title">ITEM WÄHLEN</div>
+    <div class="cs-opts" id="cs-opts"></div>
+    <button class="cs-cls-btn" onclick="closeModal('cs-ov')">Schließen</button>
+  </div>
+</div>
+
+<!-- Avatar Sheet -->
+<div class="cs-ov" id="av-ov" onclick="closeAvOv(event)">
+  <div class="cs-sheet">
+    <div style="font-family:var(--fm);font-size:12px;color:var(--c1);letter-spacing:.12em;margin-bottom:4px">AVATAR WÄHLEN</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Emoji oder eigenes Bild hochladen</div>
+    <input type="file" id="av-file-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+    <button onclick="document.getElementById('av-file-input').click()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--c3);background:rgba(168,85,247,.08);color:var(--c3);font-family:var(--fm);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px">📁 EIGENES BILD HOCHLADEN</button>
+    <div class="avatar-grid" id="av-grid"></div>
+    <button class="cs-cls-btn" onclick="closeModal('av-ov')">Schließen</button>
+  </div>
+</div>
+
+<div class="conf-c" id="conf-c"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const ALLTAG_POOL = [
+  {name:"Wasser trinken",icon:"💧",diff:"easy"},{name:"5min aufräumen",icon:"🧹",diff:"easy"},
+  {name:"Lüften",icon:"🌬️",diff:"easy"},{name:"Dehnen",icon:"🧘",diff:"easy"},
+  {name:"Tagebuch schreiben",icon:"📓",diff:"medium"},{name:"Frühstücken",icon:"🍳",diff:"easy"},
+  {name:"Zähneputzen",icon:"🦷",diff:"easy"},{name:"Lesen (30 Min)",icon:"📚",diff:"medium"},
+  {name:"Meditieren",icon:"🧘",diff:"medium"},{name:"Kalt duschen",icon:"🚿",diff:"hard"},
+  {name:"Keine Snacks",icon:"🍭",diff:"hard"},{name:"Früh aufstehen",icon:"⏰",diff:"medium"},
+  {name:"Bildschirm-Pause (1h)",icon:"📵",diff:"hard"},{name:"Gesund essen",icon:"🥗",diff:"medium"},
+  {name:"1L Wasser extra",icon:"💦",diff:"easy"},{name:"Zimmer aufräumen",icon:"🏠",diff:"hard"},
+  {name:"Neues Rezept kochen",icon:"👨‍🍳",diff:"medium"},{name:"Journaling",icon:"✍️",diff:"medium"},
+  {name:"Dankbarkeit notieren",icon:"🙏",diff:"easy"},{name:"Kein Social Media",icon:"📱",diff:"epic"},
+  {name:"Früh ins Bett",icon:"🛏️",diff:"medium"},{name:"Aufräumen & Putzen",icon:"🧽",diff:"hard"},
+  {name:"5min Pause machen",icon:"☕",diff:"easy"},{name:"Vitamins nehmen",icon:"💊",diff:"easy"},
+  {name:"Hydration tracken",icon:"🫙",diff:"easy"},
+];
+const SPORT_POOL = [
+  {name:"10 Minuten laufen",icon:"🏃",diff:"easy"},{name:"20 Liegestütze",icon:"💪",diff:"medium"},
+  {name:"30 Min Workout",icon:"🏋️",diff:"hard"},{name:"Fahrrad fahren",icon:"🚴",diff:"medium"},
+  {name:"Schwimmen gehen",icon:"🏊",diff:"hard"},{name:"5000 Schritte",icon:"👟",diff:"easy"},
+  {name:"Yoga Session",icon:"🧘",diff:"medium"},{name:"Seilspringen 5 Min",icon:"🪢",diff:"medium"},
+  {name:"100 Squats",icon:"🦵",diff:"hard"},{name:"Stretching 15 Min",icon:"🤸",diff:"easy"},
+  {name:"Treppe statt Aufzug",icon:"🪜",diff:"easy"},{name:"Park-Workout",icon:"🌳",diff:"medium"},
+  {name:"10.000 Schritte",icon:"🚶",diff:"hard"},{name:"60 Min Sport",icon:"⚡",diff:"epic"},
+  {name:"Plank 2 Minuten",icon:"🏅",diff:"medium"},{name:"Spaziergang 30 Min",icon:"🌿",diff:"easy"},
+  {name:"Tanzen (15 Min)",icon:"💃",diff:"medium"},{name:"Liegestütz-Challenge",icon:"🔥",diff:"hard"},
+  {name:"Rücken-Übungen",icon:"⚕️",diff:"medium"},{name:"Sport mit Freund",icon:"👫",diff:"medium"},
+];
+const GAMING_POOL = [
+  {name:"30min zocken",icon:"🎮",diff:"easy"},{name:"1 Runde gewinnen",icon:"🏆",diff:"medium"},
+  {name:"Neues Game testen",icon:"🆕",diff:"easy"},{name:"Tutorial abschließen",icon:"📖",diff:"easy"},
+  {name:"Achievement holen",icon:"⭐",diff:"medium"},{name:"Online-Match spielen",icon:"🌐",diff:"medium"},
+  {name:"Freund einladen",icon:"👥",diff:"medium"},{name:"Charakter freispielen",icon:"🗝️",diff:"hard"},
+  {name:"Ohne Tod durch einen Level",icon:"💀",diff:"hard"},{name:"Speedrun versuchen",icon:"⏱️",diff:"epic"},
+  {name:"Game-Lore lesen",icon:"📜",diff:"easy"},{name:"Koop-Mission abschließen",icon:"🤝",diff:"medium"},
+  {name:"2h Gaming Session",icon:"🎯",diff:"hard"},{name:"Stream schauen",icon:"📺",diff:"easy"},
+  {name:"3 Wins in Folge",icon:"🔥",diff:"epic"},{name:"Easter Egg finden",icon:"🥚",diff:"hard"},
+  {name:"All Items sammeln",icon:"💎",diff:"epic"},{name:"Guide schreiben",icon:"📝",diff:"medium"},
+  {name:"Bestzeit brechen",icon:"⚡",diff:"hard"},{name:"Solo-Run abschließen",icon:"🦾",diff:"hard"},
+];
+
+const DIFF_LABELS = {easy:"Leicht",medium:"Mittel",hard:"Schwer",epic:"EPISCH"};
+const DIFF_XP    = {easy:10,medium:15,hard:20,epic:30};
+const DIFF_COINS = {easy:5,medium:7,hard:10,epic:15};
+const SHUFFLE_COST = 10;
+
+const AVATARS = ["🧙","🧝","🧛","🤖","👾","🦸","🦹","🧟","🧜","🐉","🦊","🐺","🐻","🦁","🐯","🦅","🐼","🦝","🤠","👽","🥷","⚔️","🌟","💀","🎭","🎪","🎨","🏴‍☠️","🌈","🔥","🐸","🦋","🐙","🦖","🐲","👻","🤡","🎃","💫","🌙"];
+
+const MSGS = ["GG Bro! 🔥","Nice! 😎","Weiter so Meister! 💪","Krasser Move! ⚡","Legendär! 👑","Du ballerst! 🚀","Fetter Grind! 💎","Sigma! 🐺","Unstoppable! 🌪️","Ez Clap! 👏","No Cap! 💯","Bussin! 🎉","Top Tier! 💯","W rizz! 🫡","Sheesh! 🥶"];
+const GREETINGS = ["Chef","Meister","Legende","Bro","Gamer","Krieger","Pro","Sigma","Based"];
+
+const LOGIN_REWARDS = [
+  {coins:10,xp:10,extra:null},{coins:15,xp:15,extra:null},{coins:20,xp:20,extra:"xp_boost_30"},
+  {coins:25,xp:25,extra:null},{coins:30,xp:30,extra:"coin_bonus"},{coins:40,xp:40,extra:null},
+  {coins:100,xp:100,extra:"xp_boost_60"},
+];
+
+const POWER_UPS_DEF = [
+  {id:"xp_boost",name:"XP-Boost",icon:"⚡",desc:"Doppelte XP für 1h",price:50,duration:3600000},
+  {id:"coin_regen",name:"Coin-Regen",icon:"🪙",desc:"+2 Coins extra pro Quest für 1h",price:30,duration:3600000},
+  {id:"extra_quest",name:"Extra Alltags-Quest",icon:"➕",desc:"+1 Alltags-Quest für 24h",price:100,duration:86400000},
+  {id:"auto_complete",name:"Auto-Complete",icon:"✨",desc:"Eine Quest sofort erledigen",price:80,duration:0},
+];
+
+const SKILLS_DEF = [
+  {id:"health",name:"Gesundheit",icon:"💪",color:"var(--green)",
+   desc:"Mehr XP für Alltags & Sport-Quests",
+   levels:[{cost:200,bonus:"+2 XP/Quest"},{cost:400,bonus:"+4 XP/Quest"},{cost:600,bonus:"+6 XP/Quest"},{cost:800,bonus:"+8 XP/Quest"},{cost:1000,bonus:"+10 XP/Quest"}]},
+  {id:"prod",name:"Produktivität",icon:"📊",color:"var(--c4)",
+   desc:"Mehr Coins für Alltags-Quests",
+   levels:[{cost:200,bonus:"+1 Coin/Quest"},{cost:400,bonus:"+2 Coins/Quest"},{cost:600,bonus:"+3 Coins/Quest"},{cost:800,bonus:"+4 Coins/Quest"},{cost:1000,bonus:"+5 Coins/Quest"}]},
+  {id:"gaming",name:"Gaming",icon:"🎮",color:"var(--c3)",
+   desc:"Jedes Level = +1 Extra Gaming-Quest pro Tag",
+   levels:[{cost:200,bonus:"+1 Extra Gaming-Quest"},{cost:400,bonus:"+2 Extra Gaming-Quests"},{cost:600,bonus:"+3 Extra Gaming-Quests"},{cost:800,bonus:"+4 Extra Gaming-Quests"},{cost:1000,bonus:"+5 Extra Gaming-Quests"}]},
+];
+
+const ACH_DEF = [
+  // Quest count
+  {id:"q5",rank:"asche",name:"Erste Schritte",desc:"5 Quests abschließen",icon:"👣",target:5,stat:"totalQuests"},
+  {id:"q10",rank:"asche",name:"Erster Grind",desc:"10 Quests abschließen",icon:"⚡",target:10,stat:"totalQuests"},
+  {id:"q25",rank:"bronze",name:"Routinier",desc:"25 Quests abschließen",icon:"🥉",target:25,stat:"totalQuests"},
+  {id:"q50",rank:"bronze",name:"Halbhundert",desc:"50 Quests abschließen",icon:"5️⃣",target:50,stat:"totalQuests"},
+  {id:"q100",rank:"silber",name:"Quest-Maschine",desc:"100 Quests abschließen",icon:"🥈",target:100,stat:"totalQuests"},
+  {id:"q200",rank:"silber",name:"Doppelzentner",desc:"200 Quests abschließen",icon:"💯",target:200,stat:"totalQuests"},
+  {id:"q500",rank:"gold",name:"Centurion",desc:"500 Quests abschließen",icon:"🥇",target:500,stat:"totalQuests"},
+  {id:"q1000",rank:"schillernd",name:"Unstoppable",desc:"1000 Quests abschließen",icon:"💎",target:1000,stat:"totalQuests"},
+  {id:"q2500",rank:"schillernd",name:"Questgott",desc:"2500 Quests abschließen",icon:"🌌",target:2500,stat:"totalQuests"},
+  // Streak
+  {id:"s3",rank:"asche",name:"Drei in Folge",desc:"3 Tage Streak",icon:"🔥",target:3,stat:"bestStreak"},
+  {id:"s7",rank:"bronze",name:"Wochenwarrior",desc:"7 Tage Streak",icon:"📅",target:7,stat:"bestStreak"},
+  {id:"s14",rank:"silber",name:"Zwei Wochen",desc:"14 Tage Streak",icon:"📆",target:14,stat:"bestStreak"},
+  {id:"s30",rank:"gold",name:"Monatsgrind",desc:"30 Tage Streak",icon:"🗓️",target:30,stat:"bestStreak"},
+  {id:"s60",rank:"gold",name:"Zwei Monate",desc:"60 Tage Streak",icon:"🌙",target:60,stat:"bestStreak"},
+  {id:"s100",rank:"schillernd",name:"Centurion-Streak",desc:"100 Tage Streak",icon:"⚡",target:100,stat:"bestStreak"},
+  {id:"s365",rank:"schillernd",name:"Ein Jahr Grind",desc:"365 Tage Streak",icon:"🏆",target:365,stat:"bestStreak"},
+  // Level
+  {id:"l5",rank:"asche",name:"Aufsteiger",desc:"Level 5 erreichen",icon:"📈",target:5,stat:"level"},
+  {id:"l10",rank:"bronze",name:"Experte",desc:"Level 10 erreichen",icon:"🔰",target:10,stat:"level"},
+  {id:"l25",rank:"silber",name:"Veteran",desc:"Level 25 erreichen",icon:"⚔️",target:25,stat:"level"},
+  {id:"l50",rank:"gold",name:"Halbgott",desc:"Level 50 erreichen",icon:"🌟",target:50,stat:"level"},
+  {id:"l75",rank:"gold",name:"Übermenschlich",desc:"Level 75 erreichen",icon:"🚀",target:75,stat:"level"},
+  {id:"l100",rank:"schillernd",name:"Gottmodus",desc:"Level 100 erreichen",icon:"👑",target:100,stat:"level"},
+  // Coins
+  {id:"c50",rank:"asche",name:"Erste Münzen",desc:"50 Coins verdienen",icon:"🪙",target:50,stat:"totalCoins"},
+  {id:"c200",rank:"bronze",name:"Sparschwein",desc:"200 Coins verdienen",icon:"🐷",target:200,stat:"totalCoins"},
+  {id:"c500",rank:"silber",name:"Schatzmeister",desc:"500 Coins verdienen",icon:"💰",target:500,stat:"totalCoins"},
+  {id:"c1000",rank:"gold",name:"Krösung",desc:"1000 Coins verdienen",icon:"👛",target:1000,stat:"totalCoins"},
+  {id:"c5000",rank:"schillernd",name:"Münzgott",desc:"5000 Coins verdienen",icon:"💴",target:5000,stat:"totalCoins"},
+  // Sport
+  {id:"sp5",rank:"asche",name:"Frischling",desc:"5 Sport-Quests abschließen",icon:"🤸",target:5,stat:"totalSport"},
+  {id:"sp10",rank:"bronze",name:"Sportler",desc:"10 Sport-Quests abschließen",icon:"🏃",target:10,stat:"totalSport"},
+  {id:"sp25",rank:"silber",name:"Fitness-Fan",desc:"25 Sport-Quests abschließen",icon:"🏋️",target:25,stat:"totalSport"},
+  {id:"sp50",rank:"gold",name:"Athlet",desc:"50 Sport-Quests abschließen",icon:"🏅",target:50,stat:"totalSport"},
+  {id:"sp100",rank:"schillernd",name:"Olympionike",desc:"100 Sport-Quests abschließen",icon:"🥇",target:100,stat:"totalSport"},
+  // Gaming
+  {id:"g5",rank:"asche",name:"Noob",desc:"5 Gaming-Quests abschließen",icon:"🕹️",target:5,stat:"totalGaming"},
+  {id:"g10",rank:"bronze",name:"Gamer",desc:"10 Gaming-Quests abschließen",icon:"🎮",target:10,stat:"totalGaming"},
+  {id:"g25",rank:"silber",name:"Hardcore Gamer",desc:"25 Gaming-Quests abschließen",icon:"🎯",target:25,stat:"totalGaming"},
+  {id:"g50",rank:"gold",name:"Pro Gamer",desc:"50 Gaming-Quests abschließen",icon:"🏆",target:50,stat:"totalGaming"},
+  {id:"g100",rank:"schillernd",name:"Esports Legend",desc:"100 Gaming-Quests abschließen",icon:"💎",target:100,stat:"totalGaming"},
+  // Epic quests
+  {id:"ep3",rank:"bronze",name:"Episch!",desc:"3 Epische Quests abschließen",icon:"⚜️",target:3,stat:"epicQuests"},
+  {id:"ep10",rank:"silber",name:"Epic Grinder",desc:"10 Epische Quests abschließen",icon:"🌟",target:10,stat:"epicQuests"},
+  {id:"ep25",rank:"gold",name:"Legendär",desc:"25 Epische Quests abschließen",icon:"👑",target:25,stat:"epicQuests"},
+  {id:"ep50",rank:"schillernd",name:"Epic God",desc:"50 Epische Quests abschließen",icon:"🌠",target:50,stat:"epicQuests"},
+  // Hard quests
+  {id:"h10",rank:"bronze",name:"Challenger",desc:"10 Schwere Quests abschließen",icon:"⚔️",target:10,stat:"hardQuests"},
+  {id:"h50",rank:"gold",name:"Meister",desc:"50 Schwere Quests abschließen",icon:"🛡️",target:50,stat:"hardQuests"},
+  // Shuffle
+  {id:"shu5",rank:"asche",name:"Rastlos",desc:"5x Quests geshuffelt",icon:"🔀",target:5,stat:"totalShuffles"},
+  {id:"shu25",rank:"bronze",name:"Quecksilber",desc:"25x Quests geshuffelt",icon:"💨",target:25,stat:"totalShuffles"},
+  {id:"shu100",rank:"silber",name:"Shuffle Master",desc:"100x Quests geshuffelt",icon:"🌀",target:100,stat:"totalShuffles"},
+  // Prestige
+  {id:"pres1",rank:"gold",name:"Prestige I",desc:"Prestige 1 erreichen",icon:"⭐",target:1,stat:"prestige"},
+  {id:"pres5",rank:"schillernd",name:"Prestige V",desc:"Prestige 5 erreichen",icon:"🌠",target:5,stat:"prestige"},
+  {id:"pres10",rank:"schillernd",name:"Prestige Gott",desc:"Prestige 10 erreichen",icon:"💠",target:10,stat:"prestige"},
+  // Skills
+  {id:"sk_max1",rank:"silber",name:"Skillung",desc:"Einen Skill auf Level 5",icon:"🌳",target:1,stat:"maxSkills"},
+  {id:"sk_max3",rank:"schillernd",name:"Allrounder",desc:"Alle 3 Skills auf Level 5",icon:"🌲",target:3,stat:"maxSkills"},
+  // Daily complete
+  {id:"day1",rank:"asche",name:"Tagessieger",desc:"Alle Quests an einem Tag erledigen",icon:"☀️",target:1,stat:"completeDays"},
+  {id:"day7",rank:"bronze",name:"Wochenheld",desc:"7 Tage alle Quests erledigt",icon:"🗓️",target:7,stat:"completeDays"},
+  {id:"day30",rank:"gold",name:"Monatslegende",desc:"30 Tage alle Quests erledigt",icon:"📆",target:30,stat:"completeDays"},
+  // Login
+  {id:"login7",rank:"bronze",name:"Loyal",desc:"7-Tage Login-Bonus abgeholt",icon:"🎁",target:7,stat:"totalLogins"},
+  {id:"login30",rank:"gold",name:"Stammgast",desc:"30x Login-Bonus abgeholt",icon:"🔑",target:30,stat:"totalLogins"},
+  // Platin
+  {id:"platin",rank:"platin",name:"Der Absolute",desc:"Alle anderen Achievements freischalten",icon:"💠",special:true},
+];
+
+const SHOP_COSM = {
+  backgrounds:[
+    {id:"bg1",name:"Neon City",icon:"🌃",price:50,cssVal:"#0a1520"},
+    {id:"bg2",name:"Deep Void",icon:"🟣",price:100,cssVal:"#0d0520"},
+    {id:"bg3",name:"Cyber Red",icon:"🔴",price:200,cssVal:"#140508"},
+  ],
+  banners:[
+    {id:"ban1",name:"Cyan Wave",icon:"🌊",price:30,cssVal:"linear-gradient(135deg,#002233,#005577)"},
+    {id:"ban2",name:"Purple Fire",icon:"🔥",price:80,cssVal:"linear-gradient(135deg,#200030,#6d28d9)"},
+    {id:"ban3",name:"Gold Rush",icon:"✨",price:150,cssVal:"linear-gradient(135deg,#2a1800,#885500)"},
+  ],
+  xpbars:[
+    {id:"xp1",name:"Feuerstil",icon:"🔥",price:40,cssClass:"fire"},
+    {id:"xp2",name:"Natur",icon:"🌿",price:90,cssClass:"nature"},
+    {id:"xp3",name:"Void",icon:"🌌",price:180,cssClass:"void"},
+  ],
+  frames:[
+    {id:"fr1",name:"Cyan Glow",icon:"💙",price:60,shadow:"0 0 0 3px rgba(0,240,255,.8),0 0 16px rgba(0,240,255,.5)"},
+    {id:"fr2",name:"Pink Glow",icon:"💖",price:120,shadow:"0 0 0 3px rgba(255,0,128,.8),0 0 16px rgba(255,0,128,.5)"},
+    {id:"fr3",name:"Gold Glow",icon:"💛",price:250,shadow:"0 0 0 3px rgba(251,191,36,.8),0 0 16px rgba(251,191,36,.5)"},
+  ],
+};
+
+// ============================================================
+// STATE
+// ============================================================
+function defState(){return{
+  xp:0,level:1,coins:0,name:"Abenteurer",avatar:"🧙",avatarIsImage:false,
+  totalQuests:0,totalCoins:0,totalSport:0,totalGaming:0,
+  epicQuests:0,hardQuests:0,totalShuffles:0,completeDays:0,totalLogins:0,
+  streak:0,bestStreak:0,prestige:0,
+  lastStreakDate:null,
+  completedChallenges:{},
+  unlockedAchs:[],
+  ownedItems:[],
+  equipped:{bg:null,banner:null,xpbar:null,frame:null},
+  skills:{health:0,prod:0,gaming:0},
+  skillXpSpent:0,
+  activePowerUps:{},
+  loginDay:0,loginLastClaimDate:null,
+  shuffleSeed:null,shuffleDate:null,
+};}
+let S=(()=>{try{const s=JSON.parse(localStorage.getItem("dq3_state")||"null");return s?{...defState(),...s}:defState();}catch{return defState();}})();
+function save(){localStorage.setItem("dq3_state",JSON.stringify(S));}
+
+// ============================================================
+// UTILS
+// ============================================================
+function today(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function seededRng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/0x100000000;};}
+function dateSeed(){const d=new Date();return(d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate());}
+function xpForLevel(l){return(l-1)*100;}
+function levelFromXP(x){let l=1;while(l<100&&x>=xpForLevel(l+1))l++;return l;}
+function getXPProg(){const l=S.level;const a=xpForLevel(l);const b=xpForLevel(l+1);return{level:l,cur:S.xp,a,b,pct:l>=100?100:Math.round(((S.xp-a)/(b-a))*100)};}
+
+function getStreakMult(){const s=S.streak;if(s>=30)return 2.0;if(s>=7)return 1.5;if(s>=3)return 1.2;return 1.0;}
+function getPrestigeBonus(){return 1+(S.prestige*0.05);}
+function totalXpMult(){let m=getStreakMult()*getPrestigeBonus();if(isPuActive("xp_boost"))m*=2;return m;}
+
+function isPuActive(id){const pu=S.activePowerUps[id];if(!pu)return false;if(pu.duration===0)return false;return Date.now()<pu.endsAt;}
+function getPuRemaining(id){const pu=S.activePowerUps[id];if(!pu)return 0;return Math.max(0,pu.endsAt-Date.now());}
+function formatTime(ms){const s=Math.floor(ms/1000);if(s<60)return s+"s";const m=Math.floor(s/60);if(m<60)return m+"min";return Math.floor(m/60)+"h "+(m%60)+"min";}
+
+// Pick N unique random indices from pool
+function pickN(rng,poolLen,n,exclude=[]){
+  const idxs=[];
+  let tries=0;
+  while(idxs.length<n&&tries<999){
+    const i=Math.floor(rng()*poolLen);
+    if(!idxs.includes(i)&&!exclude.includes(i))idxs.push(i);
+    tries++;
+  }
+  return idxs;
+}
+
+// ============================================================
+// CHALLENGE GENERATION  
+// Base: 4 Alltag + 1 Sport + 1 Gaming + extras from skills/powerups/prestige = 7
+// ============================================================
+function getTodayChallenges(){
+  const d=today();
+  const seed=(S.shuffleDate===d&&S.shuffleSeed!=null)?S.shuffleSeed:dateSeed();
+  const rng=seededRng(seed);
+
+  // --- ALLTAG: 4 base ---
+  const numAlltag=4+(isPuActive("extra_quest")?1:0)+(S.prestige>=2?1:0);
+  const alltagIdxs=pickN(rng,ALLTAG_POOL.length,numAlltag);
+
+  // --- SPORT: always 1 ---
+  const sportIdxs=pickN(rng,SPORT_POOL.length,1);
+
+  // --- GAMING: 1 base + skill.gaming extra ---
+  const numGaming=1+S.skills.gaming;
+  const gamingIdxs=pickN(rng,GAMING_POOL.length,numGaming);
+
+  const chs=[
+    ...alltagIdxs.map(i=>({...ALLTAG_POOL[i],type:"alltag"})),
+    ...sportIdxs.map(i=>({...SPORT_POOL[i],type:"sport"})),
+    ...gamingIdxs.map(i=>({...GAMING_POOL[i],type:"gaming"})),
+  ];
+  return chs;
+}
+
+// XP & coin reward
+function questXP(ch){
+  const base=DIFF_XP[ch.diff]||10;
+  const skillBonus=(ch.type==="alltag"||ch.type==="sport")?S.skills.health*2:0;
+  return Math.round((base+skillBonus)*totalXpMult());
+}
+function questCoins(ch){
+  const base=DIFF_COINS[ch.diff]||5;
+  const skillBonus=ch.type==="alltag"?S.skills.prod:0;
+  const extra=isPuActive("coin_regen")?2:0;
+  return base+skillBonus+extra;
+}
+
+// ============================================================
+// SHUFFLE
+// ============================================================
+function shuffleQuests(){
+  if(S.coins<SHUFFLE_COST){showToast(`Zu wenig Coins! (${SHUFFLE_COST}🪙 nötig)`);return;}
+  const d=today();
+  const doneChallenges=S.completedChallenges[d]||[];
+  if(doneChallenges.length>0){
+    // Keep done ones - just shuffle by generating a new seed
+  }
+  S.coins-=SHUFFLE_COST;
+  S.totalShuffles=(S.totalShuffles||0)+1;
+  // New seed = old seed XOR random int
+  const newSeed=((S.shuffleSeed||dateSeed())^(Math.floor(Math.random()*0xffffffff)))>>>0;
+  S.shuffleSeed=newSeed;
+  S.shuffleDate=d;
+  // Reset completions for today since quests change
+  S.completedChallenges[d]=[];
+  checkAchs();save();
+  showToast(`🔀 Quests neu gemischt! (-${SHUFFLE_COST}🪙)`);
+  confetti();
+  renderHome();
+}
+
+// ============================================================
+// LOGIN BONUS
+// ============================================================
+function checkLoginBonus(){
+  const d=today();
+  if(S.loginLastClaimDate===d){
+    document.getElementById("lb-claimed").style.display="block";
+    document.getElementById("lb-claim-btn-wrap").style.display="none";
+  } else {
+    document.getElementById("lb-claimed").style.display="none";
+    document.getElementById("lb-claim-btn-wrap").style.display="block";
+  }
+  renderLoginBonusUI();
+}
+function renderLoginBonusUI(){
+  const day=S.loginDay%7;
+  const wrap=document.getElementById("lb-wrap");
+  wrap.innerHTML="";
+  LOGIN_REWARDS.forEach((r,i)=>{
+    const div=document.createElement("div");
+    div.className=`lbc${i<day?" done":i===day?" today":" future"}`;
+    div.innerHTML=`<div class="lbc-day">T${i+1}</div><div class="lbc-ico">${r.extra?"🎁":"🪙"}</div><div class="lbc-val">${r.coins}🪙<br>${r.xp}xp</div>`;
+    wrap.appendChild(div);
+  });
+}
+function claimLoginBonus(){
+  const d=today();
+  if(S.loginLastClaimDate===d)return;
+  const day=S.loginDay%7;
+  const r=LOGIN_REWARDS[day];
+  const xpGain=Math.round(r.xp*getPrestigeBonus());
+  S.xp+=xpGain;S.coins+=r.coins;S.totalCoins=(S.totalCoins||0)+r.coins;
+  if(r.extra==="xp_boost_30")S.activePowerUps["xp_boost"]={endsAt:Date.now()+1800000,duration:1800000};
+  if(r.extra==="xp_boost_60")S.activePowerUps["xp_boost"]={endsAt:Date.now()+3600000,duration:3600000};
+  if(r.extra==="coin_bonus"){S.coins+=50;S.totalCoins+=50;}
+  S.level=levelFromXP(S.xp);
+  S.loginDay++;
+  S.loginLastClaimDate=d;
+  S.totalLogins=(S.totalLogins||0)+1;
+  checkAchs();save();
+  showToast(`🎁 Tag ${day+1}: +${r.coins}🪙 +${xpGain}XP!`);
+  document.getElementById("lb-claimed").style.display="block";
+  document.getElementById("lb-claim-btn-wrap").style.display="none";
+  renderLoginBonusUI();
+  updateAllUI();
+}
+
+// ============================================================
+// COMPLETE CHALLENGE
+// ============================================================
+function completeChallenge(idx){
+  const d=today();
+  if(!S.completedChallenges[d])S.completedChallenges[d]=[];
+  if(S.completedChallenges[d].includes(idx))return;
+  S.completedChallenges[d].push(idx);
+  const chs=getTodayChallenges();
+  const ch=chs[idx];
+  const xpGain=questXP(ch);
+  const coinsGain=questCoins(ch);
+  const oldLevel=S.level;
+  S.xp+=xpGain;S.coins+=coinsGain;S.totalQuests++;
+  S.totalCoins=(S.totalCoins||0)+coinsGain;
+  // Type-specific counters
+  if(ch.type==="sport")S.totalSport=(S.totalSport||0)+1;
+  if(ch.type==="gaming")S.totalGaming=(S.totalGaming||0)+1;
+  if(ch.diff==="epic")S.epicQuests=(S.epicQuests||0)+1;
+  if(ch.diff==="hard")S.hardQuests=(S.hardQuests||0)+1;
+  S.level=levelFromXP(S.xp);
+  // Streak + complete days
+  if(S.completedChallenges[d].length>=chs.length){
+    S.completeDays=(S.completeDays||0)+1;
+    if(!S.lastStreakDate){S.streak=1;S.lastStreakDate=d;}
+    else{const diff=Math.round((new Date(d)-new Date(S.lastStreakDate))/86400000);
+      if(diff===0){}else if(diff===1){S.streak++;S.lastStreakDate=d;}else{S.streak=1;S.lastStreakDate=d;}
+    }
+    if(S.streak>S.bestStreak)S.bestStreak=S.streak;
+  }
+  checkAchs();save();
+  const msg=MSGS[Math.floor(Math.random()*MSGS.length)];
+  showToast(`+${xpGain}XP · +${coinsGain}🪙 · ${msg}`);
+  confetti();
+  if(S.level>oldLevel)setTimeout(()=>showLvlUp(S.level),700);
+  renderHome();
+}
+
+// Auto-complete
+function useAutoComplete(){
+  const d=today();
+  if(!S.completedChallenges[d])S.completedChallenges[d]=[];
+  const chs=getTodayChallenges();
+  for(let i=0;i<chs.length;i++){
+    if(!S.completedChallenges[d].includes(i)){
+      delete S.activePowerUps["auto_complete"];save();
+      completeChallenge(i);return;
+    }
+  }
+  showToast("Alle Quests bereits erledigt!");
+}
+
+// ============================================================
+// ACHIEVEMENTS
+// ============================================================
+function checkAchs(){
+  const maxSk=Object.values(S.skills).filter(v=>v>=5).length;
+  const st={
+    totalQuests:S.totalQuests,bestStreak:S.bestStreak,level:S.level,prestige:S.prestige,
+    totalCoins:S.totalCoins||0,totalSport:S.totalSport||0,totalGaming:S.totalGaming||0,
+    epicQuests:S.epicQuests||0,hardQuests:S.hardQuests||0,
+    totalShuffles:S.totalShuffles||0,completeDays:S.completeDays||0,
+    totalLogins:S.totalLogins||0,maxSkills:maxSk,
+  };
+  const regular=ACH_DEF.filter(a=>!a.special);
+  for(const a of regular){if(!S.unlockedAchs.includes(a.id)&&(st[a.stat]||0)>=a.target)S.unlockedAchs.push(a.id);}
+  if(regular.every(a=>S.unlockedAchs.includes(a.id))&&!S.unlockedAchs.includes("platin"))S.unlockedAchs.push("platin");
+}
+
+// ============================================================
+// SKILL TREE
+// ============================================================
+function buySkillLevel(skillId){
+  const sk=SKILLS_DEF.find(s=>s.id===skillId);
+  const cur=S.skills[skillId];
+  if(cur>=5){showToast("Skill bereits maximal!");return;}
+  const cost=sk.levels[cur].cost;
+  const avail=S.xp-S.skillXpSpent;
+  if(avail<cost){showToast(`Zu wenig XP! (${cost} XP nötig)`);return;}
+  S.skillXpSpent+=cost;S.skills[skillId]++;
+  checkAchs();save();
+  showToast(`${sk.icon} ${sk.name} Level ${S.skills[skillId]}!`);
+  renderSkills();renderHome();
+}
+
+// ============================================================
+// PRESTIGE
+// ============================================================
+function tryPrestige(){if(S.level<50){showToast("Level 50 erforderlich!");return;}if(S.prestige>=10){showToast("Maximales Prestige!");return;}openModal("prestige-ov");}
+function doPrestige(){
+  closeModal("prestige-ov");S.prestige++;
+  S.xp=0;S.level=1;S.completedChallenges={};S.shuffleSeed=null;S.shuffleDate=null;
+  checkAchs();save();confetti();
+  showToast(`⭐ Prestige ${S.prestige}! +5% permanenter XP-Bonus!`);
+  updateAllUI();
+}
+
+// ============================================================
+// SHOP
+// ============================================================
+function buyPowerUp(id){
+  const def=POWER_UPS_DEF.find(p=>p.id===id);
+  if(!def||S.coins<def.price){showToast("Zu wenig Coins! 😔");return;}
+  S.coins-=def.price;
+  if(id==="auto_complete"){
+    S.activePowerUps["auto_complete"]={endsAt:0,duration:0};
+    save();showToast("✨ Auto-Complete bereit!");useAutoComplete();
+  } else {
+    S.activePowerUps[id]={endsAt:Date.now()+def.duration,duration:def.duration};
+    save();showToast(`${def.icon} ${def.name} aktiv für ${formatTime(def.duration)}!`);
+  }
+  renderShop();renderHome();renderProfile();
+}
+function buyCosm(item){
+  if(S.ownedItems.includes(item.id))return;
+  if(S.coins<item.price){showToast("Zu wenig Coins! 😔");return;}
+  S.coins-=item.price;S.ownedItems.push(item.id);
+  save();showToast(`${item.icon} "${item.name}" gekauft!`);renderShop();
+}
+
+// ============================================================
+// COSMETICS
+// ============================================================
+function applyCosmetics(){
+  const e=S.equipped;
+  const bg=e.bg?SHOP_COSM.backgrounds.find(x=>x.id===e.bg):null;
+  document.body.style.background=bg?bg.cssVal:"";
+  const ban=e.banner?SHOP_COSM.banners.find(x=>x.id===e.banner):null;
+  const pb=document.getElementById("pf-banner");
+  if(pb)pb.style.background=ban?ban.cssVal:"linear-gradient(135deg,#0f1e30,#162235)";
+  document.querySelectorAll(".xpfill").forEach(b=>{
+    b.className="xpfill";
+    if(e.xpbar){const xi=SHOP_COSM.xpbars.find(x=>x.id===e.xpbar);if(xi)b.classList.add(xi.cssClass);}
+  });
+  const fr=e.frame?SHOP_COSM.frames.find(x=>x.id===e.frame):null;
+  const av=document.getElementById("pf-av");
+  if(av)av.style.boxShadow=fr?fr.shadow:"";
+}
+
+let _csKey=null;
+function openCosmeticSheet(key,cat,label){
+  _csKey=key;
+  document.getElementById("cs-title").textContent=label.toUpperCase()+" WÄHLEN";
+  const items=SHOP_COSM[cat];
+  const opts=document.getElementById("cs-opts");opts.innerHTML="";
+  const none=document.createElement("div");
+  none.className=`cs-opt${S.equipped[key]===null?" sel":""}`;
+  none.innerHTML=`<div class="cs-opt-ico">❌</div><div class="cs-opt-nm">Keins</div>`;
+  none.onclick=()=>equipItem(key,null);
+  opts.appendChild(none);
+  for(const item of items){
+    const owned=S.ownedItems.includes(item.id);const sel=S.equipped[key]===item.id;
+    const opt=document.createElement("div");
+    opt.className=`cs-opt${sel?" sel":""}${!owned?" lck":""}`;
+    opt.innerHTML=`<div class="cs-opt-ico">${item.icon}</div><div class="cs-opt-nm">${item.name}${!owned?" 🔒":""}</div>`;
+    opt.onclick=owned?()=>equipItem(key,item.id):()=>showToast("Erst im Shop kaufen! 🛒");
+    opts.appendChild(opt);
+  }
+  openModal("cs-ov");
+}
+function equipItem(key,id){S.equipped[key]=id;save();applyCosmetics();renderProfile();closeModal("cs-ov");}
+function closeCsOv(e){if(e.target===document.getElementById("cs-ov"))closeModal("cs-ov");}
+
+// ============================================================
+// AVATAR
+// ============================================================
+function openAvatarSheet(){
+  const grid=document.getElementById("av-grid");grid.innerHTML="";
+  AVATARS.forEach(em=>{
+    const opt=document.createElement("div");
+    opt.className=`av-opt${S.avatar===em&&!S.avatarIsImage?" sel":""}`;
+    opt.textContent=em;
+    opt.onclick=()=>{S.avatar=em;S.avatarIsImage=false;save();updateAvatar();closeModal("av-ov");};
+    grid.appendChild(opt);
+  });
+  openModal("av-ov");
+}
+function handleAvatarUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    S.avatar=ev.target.result;S.avatarIsImage=true;save();updateAvatar();closeModal("av-ov");
+    showToast("🖼️ Eigenes Bild gesetzt!");
+  };
+  reader.readAsDataURL(file);
+}
+function updateAvatar(){
+  const av=document.getElementById("pf-av");if(!av)return;
+  if(S.avatarIsImage){
+    av.innerHTML=`<img src="${S.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"><div class="pf-av-edit">✏️ ÄNDERN</div>`;
+  } else {
+    av.innerHTML=`${S.avatar}<div class="pf-av-edit">✏️ ÄNDERN</div>`;
+  }
+  applyCosmetics();
+}
+function closeAvOv(e){if(e.target===document.getElementById("av-ov"))closeModal("av-ov");}
+
+// ============================================================
+// RENDER HOME
+// ============================================================
+function updateAllUI(){renderHome();applyCosmetics();}
+
+function renderHome(){
+  const gr=GREETINGS[Math.floor(Math.random()*GREETINGS.length)];
+  document.getElementById("greet").textContent=`Willkommen zurück, ${S.name}!`;
+  document.getElementById("greet-sub").textContent=`Was geht, ${gr}? Lass uns questen! 💥`;
+  const {pct,cur,b}=getXPProg();
+  document.getElementById("h-lvl").textContent=S.level;
+  document.getElementById("h-xpb").style.width=pct+"%";
+  document.getElementById("h-xp-t").textContent=`${cur} / ${b} XP`;
+  document.getElementById("h-next").textContent=S.level>=100?"MAX LEVEL 🏆":`Nächstes Level: ${b} XP`;
+  document.getElementById("h-coins").textContent=S.coins;
+  const mult=totalXpMult().toFixed(1);
+  const mb=document.getElementById("h-mult");
+  mb.textContent=`⚡ ${mult}x XP`;mb.className="mult-badge"+(parseFloat(mult)===1.0?" x1":"");
+  const pb=document.getElementById("h-prestige-badge");
+  if(S.prestige>0){pb.style.display="inline-flex";pb.textContent=`⭐ Prestige ${S.prestige}`;}
+  else pb.style.display="none";
+  // Power-ups
+  const puList=document.getElementById("h-pu-list");const puStatus=document.getElementById("h-pu-status");
+  puList.innerHTML="";let anyActive=false;
+  for(const pu of POWER_UPS_DEF){if(isPuActive(pu.id)){anyActive=true;const d=document.createElement("div");d.className="pau";d.textContent=`${pu.icon} ${pu.name} ${formatTime(getPuRemaining(pu.id))}`;puList.appendChild(d);}}
+  puStatus.style.display=anyActive?"block":"none";
+  // Shuffle button
+  const canShuffle=S.coins>=SHUFFLE_COST;
+  const sb=document.getElementById("shuffle-btn");
+  sb.className="shuffle-btn"+(canShuffle?"":" no-coins");
+  document.getElementById("shuffle-cost").textContent=`(${SHUFFLE_COST}🪙)`;
+  document.getElementById("shuffle-count").textContent=`${S.totalShuffles||0}x geshuffelt`;
+  // Challenges
+  const chs=getTodayChallenges();
+  const done=S.completedChallenges[today()]||[];
+  document.getElementById("quest-count").textContent=`${done.length}/${chs.length} erledigt`;
+  const list=document.getElementById("chl-list");list.innerHTML="";
+  // Render: alltag first, then sport section, then gaming section
+  const alltagChs=chs.filter((c,i)=>c.type==="alltag"?i:false).length;
+  let lastType=null;
+  chs.forEach((ch,i)=>{
+    // Section dividers
+    if(ch.type!==lastType){
+      if(ch.type==="sport"){
+        const div=document.createElement("div");div.className="chl-div sport-div";div.innerHTML="🏃 &nbsp;SPORT QUEST&nbsp; 🏃";list.appendChild(div);
+      } else if(ch.type==="gaming"){
+        const div=document.createElement("div");div.className="chl-div";div.innerHTML="🎮 &nbsp;GAMING QUEST&nbsp; 🎮";list.appendChild(div);
+      }
+      lastType=ch.type;
+    }
+    const isDone=done.includes(i);
+    const card=document.createElement("div");
+    card.className=`chl${ch.type==="gaming"?" gaming":ch.type==="sport"?" sport":""}${isDone?" done":""}`;
+    const xp=questXP(ch);const coins=questCoins(ch);
+    const diffLabel=DIFF_LABELS[ch.diff]||"Leicht";
+    card.innerHTML=`
+      <span class="ci">${ch.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+          <div class="cn">${ch.name}</div>
+          <span class="diff diff-${ch.diff}">${diffLabel}</span>
+        </div>
+        <div class="cr">+${xp} XP · +${coins} 🪙</div>
+      </div>`;
+    if(!isDone)card.onclick=()=>completeChallenge(i);
+    list.appendChild(card);
+  });
+  checkLoginBonus();
+  applyCosmetics();
+}
+
+// ============================================================
+// RENDER ACHIEVEMENTS
+// ============================================================
+function renderAchievements(){
+  const total=ACH_DEF.length;const unlocked=S.unlockedAchs.length;
+  document.getElementById("ach-sub").textContent=`${unlocked} / ${total} freigeschaltet`;
+  const maxSk=Object.values(S.skills).filter(v=>v>=5).length;
+  const st={
+    totalQuests:S.totalQuests,bestStreak:S.bestStreak,level:S.level,prestige:S.prestige,
+    totalCoins:S.totalCoins||0,totalSport:S.totalSport||0,totalGaming:S.totalGaming||0,
+    epicQuests:S.epicQuests||0,hardQuests:S.hardQuests||0,
+    totalShuffles:S.totalShuffles||0,completeDays:S.completeDays||0,
+    totalLogins:S.totalLogins||0,maxSkills:maxSk,
+  };
+  const rankOrder=["asche","bronze","silber","gold","schillernd","platin"];
+  const rankEmoji={asche:"⬛",bronze:"🥉",silber:"🥈",gold:"🥇",schillernd:"🌈",platin:"💠"};
+  const rankLabel={asche:"Asche",bronze:"Bronze",silber:"Silber",gold:"Gold",schillernd:"Schillernd",platin:"Platin"};
+  const content=document.getElementById("ach-content");content.innerHTML="";
+  for(const rank of rankOrder){
+    const achs=ACH_DEF.filter(a=>a.rank===rank);if(!achs.length)continue;
+    const sec=document.createElement("div");sec.style.marginBottom="20px";
+    sec.innerHTML=`<div class="rank-hdr r-${rank}">${rankEmoji[rank]} ${rankLabel[rank]} <span style="margin-left:auto;opacity:.6">${achs.filter(a=>S.unlockedAchs.includes(a.id)).length}/${achs.length}</span></div>`;
+    for(const a of achs){
+      const done=S.unlockedAchs.includes(a.id);
+      let pct=0,progText="";
+      if(!a.special){const val=Math.min(st[a.stat]||0,a.target);pct=Math.round((val/a.target)*100);progText=`${Math.min(st[a.stat]||0,a.target)} / ${a.target}`;}
+      else{const r=ACH_DEF.filter(x=>!x.special);const dc=r.filter(x=>S.unlockedAchs.includes(x.id)).length;pct=Math.round((dc/r.length)*100);progText=`${dc} / ${r.length}`;}
+      const card=document.createElement("div");card.className=`ach-c${done?" done":""}`;
+      card.innerHTML=`<div class="ach-top"><span class="ach-ic">${a.icon}</span><div style="flex:1"><div class="ach-n">${a.name}</div><div class="ach-d">${a.desc}</div></div>${done?"<span style='color:var(--green);font-size:16px'>✅</span>":""}</div>${!done?`<div class="prog-bg"><div class="prog-f" style="width:${pct}%"></div></div><div class="prog-t">${progText}</div>`:""}`;
+      sec.appendChild(card);
+    }
+    content.appendChild(sec);
+  }
+}
+
+// ============================================================
+// RENDER SKILLS
+// ============================================================
+function renderSkills(){
+  const content=document.getElementById("skill-content");content.innerHTML="";
+  const avail=S.xp-S.skillXpSpent;
+  content.innerHTML=`<div style="font-family:var(--fm);font-size:12px;color:var(--text3);margin-bottom:12px">Verfügbare XP: <span style="color:var(--c1)">${avail}</span></div>`;
+  for(const sk of SKILLS_DEF){
+    const curLvl=S.skills[sk.id];
+    const nextCost=curLvl<5?sk.levels[curLvl].cost:null;
+    const canBuy=nextCost&&avail>=nextCost;
+    let levelHtml="";
+    for(let i=0;i<5;i++){
+      const state=i<curLvl?"done":i===curLvl?"next":"locked";
+      levelHtml+=`<div class="sk-dot ${state}" onclick="${state==='next'?`buySkillLevel('${sk.id}')`:''}">${i+1}<div style="font-size:7px">${sk.levels[i].cost}</div></div>`;
+    }
+    const effectText=curLvl>0?`✅ ${sk.levels[curLvl-1].bonus}`:sk.desc;
+    // Show quest count info for gaming skill
+    const extraInfo=sk.id==="gaming"?`<div style="font-size:11px;color:var(--text3);margin-top:4px">Aktuell: +${S.skills.gaming} Extra Gaming-Quest${S.skills.gaming!==1?"s":""} täglich</div>`:"";
+    const card=document.createElement("div");card.className="skill-card";
+    card.innerHTML=`
+      <div class="sk-header">
+        <span class="sk-ico">${sk.icon}</span>
+        <div><div class="sk-title" style="color:${sk.color}">${sk.name}</div><div class="sk-sub">Level ${curLvl}/5${curLvl>=5?" (MAX)":""}</div></div>
+        ${curLvl<5?`<div style="margin-left:auto;text-align:right"><div style="font-size:10px;color:var(--text3)">Nächstes</div><div style="font-family:var(--fm);font-size:13px;color:${canBuy?"var(--c1)":"var(--red)"}">${nextCost} XP</div></div>`:""}
+      </div>
+      <div class="sk-levels">${levelHtml}</div>
+      <div class="sk-effect">${effectText}${extraInfo}</div>
+      ${curLvl<5&&canBuy?`<button onclick="buySkillLevel('${sk.id}')" style="margin-top:10px;width:100%;padding:9px;border-radius:8px;border:1px solid ${sk.color};background:${sk.color}22;color:${sk.color};font-family:var(--fm);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.08em">LEVELN (${nextCost} XP)</button>`:""}
+    `;
+    content.appendChild(card);
+  }
+}
+
+// ============================================================
+// RENDER SHOP
+// ============================================================
+function renderShop(){
+  document.getElementById("sh-coins").textContent=S.coins;
+  const puShop=document.getElementById("pu-shop");puShop.innerHTML="";
+  for(const pu of POWER_UPS_DEF){
+    const active=isPuActive(pu.id);const canAfford=S.coins>=pu.price;
+    const div=document.createElement("div");
+    div.className=`pu-card${active?" active":""}${!canAfford&&!active?" no-coins":""}`;
+    const badge=active?`<span class="pu-badge pb-active">AKTIV</span>`:`<span class="pu-badge pb-buy">${pu.price}🪙</span>`;
+    div.innerHTML=`${badge}<div class="pu-ico">${pu.icon}</div><div class="pu-name">${pu.name}</div><div class="pu-desc">${pu.desc}</div>${active?`<div class="pu-timer">${formatTime(getPuRemaining(pu.id))} verbleibend</div>`:`<div class="pu-price">🪙 ${pu.price}</div>`}`;
+    if(!active)div.onclick=()=>buyPowerUp(pu.id);
+    puShop.appendChild(div);
+  }
+  const cosmDiv=document.getElementById("shop-cosm");cosmDiv.innerHTML="";
+  const cats=[{key:"backgrounds",label:"🌆 Hintergründe"},{key:"banners",label:"🎨 Profil-Banner"},{key:"xpbars",label:"✨ Level-Bar Styles"},{key:"frames",label:"🖼️ Rahmen"}];
+  for(const cat of cats){
+    const t=document.createElement("div");t.className="ttl";t.style.marginTop="16px";t.textContent=cat.label;
+    cosmDiv.appendChild(t);
+    const g=document.createElement("div");g.className="shop-grid";
+    for(const item of SHOP_COSM[cat.key]){
+      const owned=S.ownedItems.includes(item.id);const canAfford=S.coins>=item.price;
+      const el=document.createElement("div");el.className=`sh-item${owned?" owned":""}`;
+      const badge=owned?`<span class="sh-badge sb-owned">OWNED</span>`:canAfford?`<span class="sh-badge sb-buy">KAUFEN</span>`:`<span class="sh-badge sb-lock">🔒</span>`;
+      el.innerHTML=`${badge}<div class="sh-ico">${item.icon}</div><div class="sh-name">${item.name}</div><div class="sh-price">🪙 ${item.price}</div>`;
+      if(!owned)el.onclick=()=>buyCosm(item);
+      g.appendChild(el);
+    }
+    cosmDiv.appendChild(g);
+  }
+}
+
+// ============================================================
+// RENDER PROFILE
+// ============================================================
+function renderProfile(){
+  document.getElementById("pf-name").value=S.name;
+  document.getElementById("pf-coins").textContent=S.coins;
+  const {pct,cur,b}=getXPProg();
+  document.getElementById("pf-lvl").textContent=S.level;
+  document.getElementById("pf-xpb").style.width=pct+"%";
+  document.getElementById("pf-xp-t").textContent=`${cur} / ${b} XP`;
+  document.getElementById("st-total").textContent=S.totalQuests;
+  document.getElementById("st-streak").textContent=S.streak;
+  document.getElementById("st-best").textContent=S.bestStreak;
+  const presRow=document.getElementById("pf-prestige-row");
+  if(S.prestige>0){presRow.style.display="block";document.getElementById("pf-prestige-badge").textContent=`⭐ Prestige ${S.prestige} · +${S.prestige*5}% XP-Bonus`;}
+  else presRow.style.display="none";
+  const btn=document.getElementById("prestige-btn");
+  if(S.prestige>=10){btn.className="prestige-btn disabled";btn.textContent="⭐ MAX PRESTIGE erreicht";}
+  else if(S.level>=50){btn.className="prestige-btn ready";btn.textContent=`⚡ PRESTIGE ${S.prestige+1} (Level ${S.level}/50)`;}
+  else{btn.className="prestige-btn disabled";btn.textContent=`⚠️ Prestige (Level ${S.level}/50)`;}
+  const puWrap=document.getElementById("pf-pu-wrap");const puList=document.getElementById("pf-pu-list");
+  puList.innerHTML="";let anyPu=false;
+  for(const pu of POWER_UPS_DEF){if(isPuActive(pu.id)){anyPu=true;const d=document.createElement("div");d.className="pau";d.textContent=`${pu.icon} ${pu.name} · ${formatTime(getPuRemaining(pu.id))}`;puList.appendChild(d);}}
+  puWrap.style.display=anyPu?"block":"none";
+  const cosm=[{key:"bg",label:"Hintergrund",cat:"backgrounds"},{key:"banner",label:"Banner",cat:"banners"},{key:"xpbar",label:"Level-Bar",cat:"xpbars"},{key:"frame",label:"Rahmen",cat:"frames"}];
+  const g=document.getElementById("cosm-g");g.innerHTML="";
+  for(const c of cosm){
+    const eq=S.equipped[c.key];const item=eq?SHOP_COSM[c.cat].find(x=>x.id===eq):null;
+    const s=document.createElement("div");s.className=`cosm-s${eq?" eq":""}`;
+    s.innerHTML=`<div class="cs-l">${c.label}</div><div class="cs-v">${item?item.icon+" "+item.name:"— Keins"}</div>`;
+    s.onclick=()=>openCosmeticSheet(c.key,c.cat,c.label);
+    g.appendChild(s);
+  }
+  updateAvatar();
+  applyCosmetics();
+}
+
+// ============================================================
+// MODALS & UI HELPERS
+// ============================================================
+function openModal(id){document.getElementById(id).classList.add("on");}
+function closeModal(id){document.getElementById(id).classList.remove("on");}
+function showLvlUp(lvl){document.getElementById("m-lvl").textContent=lvl;document.getElementById("m-lvl2").textContent=lvl;openModal("lvlup-ov");confetti();}
+let _toastT;
+function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("on");clearTimeout(_toastT);_toastT=setTimeout(()=>t.classList.remove("on"),2800);}
+
+function confetti(){
+  const c=document.getElementById("conf-c");c.innerHTML="";
+  const clrs=["#00f0ff","#ff0080","#fbbf24","#a855f7","#10f090","#ff6b00"];
+  for(let i=0;i<55;i++){const p=document.createElement("div");p.className="cp";p.style.cssText=`left:${Math.random()*100}%;top:${-10-Math.random()*20}px;background:${clrs[~~(Math.random()*clrs.length)]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>.5?"50%":"2px"};animation-delay:${Math.random()*.5}s;animation-duration:${1.2+Math.random()*.8}s;`;c.appendChild(p);}
+  setTimeout(()=>c.innerHTML="",3000);
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function navigate(page){
+  document.querySelectorAll(".pg").forEach(p=>p.classList.remove("on"));
+  document.querySelectorAll(".nb").forEach(b=>b.classList.remove("on"));
+  document.getElementById("pg-"+page).classList.add("on");
+  document.getElementById("nb-"+page).classList.add("on");
+  window.scrollTo(0,0);
+  if(page==="home")renderHome();
+  else if(page==="achievements")renderAchievements();
+  else if(page==="skills")renderSkills();
+  else if(page==="shop")renderShop();
+  else if(page==="profile")renderProfile();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.getElementById("pf-name").addEventListener("change",function(){S.name=this.value.trim()||"Abenteurer";save();renderHome();});
+
+// Streak reset check
+(function(){if(!S.lastStreakDate)return;const diff=Math.round((new Date(today())-new Date(S.lastStreakDate))/86400000);if(diff>1){S.streak=0;save();}})();
+
+// Timer for power-ups
+setInterval(()=>{
+  const pg=document.querySelector(".pg.on");if(!pg)return;
+  const id=pg.id.replace("pg-","");
+  if(id==="home")renderHome();
+  else if(id==="profile")renderProfile();
+  else if(id==="shop")renderShop();
+},30000);
+
+renderHome();
+applyCosmetics();
+  // Service Worker registrieren
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('✅ SW registriert:', reg.scope))
+        .catch(err => console.log('❌ SW Fehler:', err));
+    });
+  }
+</script>
+</script>
+</body>
+</html>
